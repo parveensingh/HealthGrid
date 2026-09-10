@@ -1,0 +1,80 @@
+# =======================================================================
+# SecureChain: Production .gitignore
+# =======================================================================
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# -----------------------------------------------------------------------
+# Node.js, Next.js & Hardhat (Frontend & Contracts)
+# -----------------------------------------------------------------------
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Next.js Build Outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Hardhat Outputs
+contracts/artifacts/
+contracts/cache/
+contracts/typechain/
+contracts/typechain-types/
+
+# -----------------------------------------------------------------------
+# Python & Django (Backend & Attribute Authority)
+# -----------------------------------------------------------------------
+venv/
+backend/venv/
+*/venv/
+env/
+*/env/
+ENV/
+*.py[cod]
+*$py.class
+__pycache__/
+*/__pycache__/
+
+# Django Database & Static
+db.sqlite3
+backend/db.sqlite3
+*.sqlite3-journal
+*.log
+
+# Media & IPFS Vault temporary data
+backend/media/
+media/
+!backend/media/.gitkeep
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
