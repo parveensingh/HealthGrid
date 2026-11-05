@@ -1,130 +1,60 @@
-# SecureChain: Decentralized Access Control for Medical Reports Using Smart Contracts and Attribute-Based Encryption
+# SecureChain local demo
 
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://soliditylang.org/)
-[![Django](https://img.shields.io/badge/Django-5.1-green.svg)](https://www.djangoproject.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![IPFS](https://img.shields.io/badge/IPFS-Off--Chain%20Vault-cyan.svg)](https://ipfs.tech/)
-[![CP-ABE](https://img.shields.io/badge/Cryptography-CP--ABE%20%2B%20AES--256-teal.svg)](#cryptography)
+This checkout originally contained a README and launch scripts, but no application source. The application in this repository is a newly created local demonstration inspired by the README, not a recovered copy of the original project.
 
-An enterprise-grade, real-world implementation of the **8th Semester Capstone Engineering Project** based on the research paper:  
-> **"Decentralized Access Control for Medical Reports Using Smart Contracts and Attribute-Based Encryption"**
+## What this demo includes
 
----
+- Django REST API with seeded demo doctors and sample attribute-based access policies.
+- AES-256-GCM encryption of uploaded files at rest, with policy checks before decryption.
+- Next.js patient, doctor, and admin portals.
+- Local Hardhat Ethereum node and an on-chain audit logger.
+- Optional IPFS Kubo HTTP API support for storing encrypted payloads.
 
-## 1. System Architecture
+## Important limitations
 
-```
-                      ┌──────────────────────────────────────────────┐
-                      │             NEXT.JS 14 FRONTEND              │
-                      │  - Patient Portal (Policy Builder & Revoke)  │
-                      │  - Doctor Portal (Decryption & PDF Viewer)   │
-                      │  - Hospital Admin (KYC & Attribute Mgmt)     │
-                      └──────────────┬───────────────────────────────┘
-                                     │
-                 ┌───────────────────┴───────────────────┐
-                 │ Web3 (MetaMask / Ethers.js)           │ REST APIs (JSON)
-                 ▼                                       ▼
-  ┌───────────────────────────────┐     ┌───────────────────────────────────┐
-  │     BLOCKCHAIN LAYER          │     │          DJANGO BACKEND           │
-  │     (Ethereum / Hardhat)      │     │    (Django REST Framework)        │
-  │  - MedicalRegistry.sol        │     │  - Attribute Authority (AA)       │
-  │  - AccessControlManager.sol   │◄────┤  - CP-ABE + AES-256 Hybrid Crypto │
-  │  - AuditLogger.sol            │Web3 ├─────────────────┬─────────────────┘
-  └───────────────────────────────┘     │                 │
-                                        │                 ▼
-                                        │     ┌───────────────────────┐
-                                        │     │     IPFS STORAGE      │
-                                        └────►│  (Encrypted Payloads) │
-                                              └───────────────────────┘
-```
+This is **not** a clinical or production system. It does not implement CP-ABE, user authentication, key separation from the backend, HIPAA/GDPR compliance, or a production blockchain. The demo's symmetric encryption key is derived from the Django `SECRET_KEY`; the backend can decrypt files. Demo doctor identities are selectable without signing in. The Hardhat node is local and disposable. Do not upload real patient or other sensitive data.
 
----
+When Kubo is not configured, encrypted files are kept on the local filesystem. To use a local Kubo node, set `KUBO_API_URL=http://127.0.0.1:5001` in `backend\.env` and restart Django. IPFS will then store the encrypted payload; it does not provide CP-ABE.
 
-## 2. Key Modules Implemented
+## Requirements
 
-1. **Smart Contracts (`contracts/`)**:
-   - `MedicalRecordRegistry.sol`: Decentralized registry binding record IDs to IPFS CIDs, patient owners, and policy hashes.
-   - `AccessControlManager.sol`: Role-based access validation, dynamic on-chain revocation ($\le 0.5\text{s}$), and Break-Glass emergency override.
-   - `AuditLogger.sol`: Immutable HIPAA/GDPR audit ledger recording every registration, access attempt, and revocation.
+- Windows 10/11
+- Python 3.10 or newer
+- Node.js 22.13 or newer and npm
 
-2. **Attribute Authority & Cryptographic Engine (`backend/`)**:
-   - **CP-ABE Hybrid Encryption**: Encrypts raw files using **AES-256-GCM** and encrypts the symmetric key using **Ciphertext-Policy Attribute-Based Encryption**.
-   - **KeyGen Service**: Generates collusion-resistant secret key components for clinicians based on their verified medical attributes (e.g. `Role:Doctor`, `Dept:Cardiology`).
-   - **IPFS Vault Service**: Zero-knowledge off-chain decentralized storage with deterministic cryptographic CID calculation (and Pinata Cloud support).
+## Install and run
 
-3. **Modern Web Portals (`frontend/`)**:
-   - **Patient Portal** (`/patient`): File dropzone, visual Boolean policy builder, real-time revocation toggles, and patient audit feed.
-   - **Doctor Portal** (`/doctor`): Identity card, patient record directory, real-time CP-ABE decryption viewer, and Break-Glass emergency mode.
-   - **Hospital Admin Portal** (`/admin`): Doctor KYC verification, CP-ABE key generation, and system-wide HIPAA audit table.
+1. Double-click `setup_and_install.bat`. It creates a Python virtual environment, installs dependencies, creates a local Django secret, migrates and seeds the database, and installs/compiles the frontend and contracts.
+2. Double-click `start_all.bat`. It starts the local Hardhat node, deploys the audit contract, then opens the Django API and Next.js frontend in separate terminal windows.
+3. Open <http://localhost:3000>. Use the Patient portal to upload a small sample document, then try the Doctor and Admin portals.
 
----
+Service URLs:
 
-## 3. Quick Start Guide (Ready for Anyone to Use)
+- Web app: <http://localhost:3000>
+- API health: <http://127.0.0.1:8001/api/health/>
+- Local Ethereum JSON-RPC: <http://127.0.0.1:8545>
 
-### For Fresh Computers / Classmates / Evaluators:
-1. **First-Time Setup (Automated)**:
-   - Double-click [`setup_and_install.bat`](file:///c:/Users/nabee/Downloads/asad%20bhai/setup_and_install.bat).
-   - This automatically checks for Python & Node.js (and installs them if missing), configures the Python virtual environment, compiles the Solidity contracts, applies database migrations, seeds the database, and installs all Next.js dependencies.
+The start script uses the first default Hardhat development account. Its key is public test data and must never be reused on a real network.
 
-2. **Run Everything**:
-   - Double-click [`start_all.bat`](file:///c:/Users/nabee/Downloads/asad%20bhai/start_all.bat).
-   - Both the Django REST API (`http://127.0.0.1:8000`) and the Next.js Web App (`http://localhost:3000`) will launch automatically in their own terminal windows.
+## Tests
 
-### Or Run Manually:
+Run backend tests:
 
-#### 1. Backend (Django):
-```bash
+```powershell
 cd backend
-..\backend\venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
+.\venv\Scripts\python.exe manage.py test
 ```
 
-#### 2. Frontend (Next.js):
-```bash
-cd frontend
-npm run dev
-```
-Open **http://localhost:3000** in your browser.
+Run contract tests:
 
-#### 3. Smart Contracts (Hardhat Node & Tests):
-```bash
+```powershell
 cd contracts
-npx hardhat test      # Runs automated contract test suite
-npx hardhat node      # Starts local Ethereum node
+npm test
 ```
 
----
+Build the frontend:
 
-## 4. Live Viva / Defense Demonstration Flow (3 Minutes)
-
-1. **Step 1: Patient Uploads Report**
-   - Open **http://localhost:3000/patient**.
-   - Select a sample report (e.g., Cardiac Echo PDF).
-   - Use the **Visual Policy Builder** to set the policy: `(Role:Doctor AND Dept:Cardiology) OR Emergency:True`.
-   - Click **Encrypt & Pin to IPFS**. Notice the generated IPFS CID and instant encryption.
-
-2. **Step 2: Authorized Doctor Decrypts Report**
-   - Open **http://localhost:3000/doctor**.
-   - Select **Dr. Sarah Jenkins** (Cardiologist). Her attributes match the policy.
-   - Click **Decrypt & View**. The report opens immediately in the secure in-browser PDF viewer.
-
-3. **Step 3: Unauthorized Access Rejection**
-   - In the Doctor Portal, switch to **Dr. Marcus Vance** (Dermatologist).
-   - Attempt to decrypt the Cardiology record.
-   - The system **mathematically rejects decryption** and logs an unauthorized access attempt to the HIPAA audit ledger.
-
-4. **Step 4: Dynamic Revocation in < 0.5s**
-   - Go back to the **Patient Portal** and click **Revoke Access** on the record.
-   - Return to Doctor Portal. Even authorized doctors are now locked out immediately without central IT intervention.
-
----
-
-## 5. Comparison with Existing Systems (Paper Table II)
-
-| Feature | SecureChain (Ours) | MedRec | FHIRChain |
-| :--- | :--- | :--- | :--- |
-| **Decentralization** | **Full** | Partial | Full |
-| **Access Granularity** | **Fine-Grained (CP-ABE)** | Coarse | Medium |
-| **Encryption** | **CP-ABE + AES-256** | Symmetric | Public Key |
-| **Revocation Speed** | **< 0.5s** | 2.0s | 1.5s |
-| **Audit Integrity** | **Ethereum Immutability** | Database | Consortium |
-| **HIPAA Compliance** | **Full** | Partial | Full |
+```powershell
+cd frontend
+npm run build
+```

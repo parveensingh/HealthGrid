@@ -48,6 +48,7 @@ contracts/artifacts/
 contracts/cache/
 contracts/typechain/
 contracts/typechain-types/
+contracts/deployment.json
 
 # -----------------------------------------------------------------------
 # Python & Django (Backend & Attribute Authority)
