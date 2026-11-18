@@ -17,10 +17,8 @@ desktop.ini
 
 # Environment Variables & Secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 *.pem
 *.key
 
@@ -70,9 +68,9 @@ backend/db.sqlite3
 *.sqlite3-journal
 *.log
 
-# Media & IPFS Vault temporary data
-backend/media/
-media/
+# Media & IPFS Vault temporary data / uploads
+backend/media/*
+media/*
 !backend/media/.gitkeep
 
 # Testing & Coverage

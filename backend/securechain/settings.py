@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "attribute_authority",
     "records",
+    "education",
 ]
 
 MIDDLEWARE = [

@@ -60,7 +60,11 @@ def doctors(request):
 @parser_classes([JSONParser, FormParser, MultiPartParser])
 def records(request):
     if request.method == "GET":
-        return Response(RecordSerializer(MedicalRecord.objects.order_by("-created_at"), many=True).data)
+        qs = MedicalRecord.objects.order_by("-created_at")
+        patient_name = request.query_params.get("patient_name")
+        if patient_name:
+            qs = qs.filter(patient_name__icontains=patient_name)
+        return Response(RecordSerializer(qs, many=True).data)
 
     uploaded = request.FILES.get("file")
     title = request.data.get("title", "")
@@ -180,3 +184,63 @@ def revoke_record(request, record_id):
 def audit(request):
     events = AuditEvent.objects.select_related("record").all()[:200]
     return Response(AuditEventSerializer(events, many=True).data)
+
+
+# ─────────────────── NEW ENDPOINTS ───────────────────────────────
+
+@api_view(["GET"])
+def record_history(request, record_id):
+    """Return all audit events for a specific record."""
+    try:
+        record = MedicalRecord.objects.get(id=record_id)
+    except MedicalRecord.DoesNotExist:
+        return Response({"error": "Record was not found."}, status=status.HTTP_404_NOT_FOUND)
+    events = AuditEvent.objects.filter(record=record).order_by("-created_at")
+    return Response(AuditEventSerializer(events, many=True).data)
+
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+def record_consent(request, record_id):
+    """Toggle consent on a record — logs a consent audit event."""
+    try:
+        record = MedicalRecord.objects.get(id=record_id)
+    except MedicalRecord.DoesNotExist:
+        return Response({"error": "Record was not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    actor = request.data.get("actor", "Patient")
+    consent_given = request.data.get("consent_given")
+    if consent_given is None:
+        return Response({"error": "consent_given (bool) is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Store consent in record policy metadata
+    policy = record.policy or {}
+    policy["consent_given"] = bool(consent_given)
+    record.policy = policy
+    record.save(update_fields=["policy"])
+
+    # Log as audit event using "access_granted"/"access_denied" to stay within
+    # the existing ACTIONS choices while conveying consent semantics.
+    action = "access_granted" if consent_given else "access_denied"
+    try:
+        event, tx_hash = _record_event(
+            record,
+            str(actor)[:120],
+            action,
+            {"consent_event": True, "consent_given": bool(consent_given)},
+        )
+    except (BlockchainError, OSError, ValueError) as exc:
+        logger.exception("Could not log consent audit event.")
+        return Response(
+            {"error": f"Consent updated but audit logging failed: {exc}"},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    return Response(
+        {
+            "record_id": str(record.id),
+            "consent_given": bool(consent_given),
+            "audit_event_id": event.id,
+            "tx_hash": tx_hash,
+        }
+    )
