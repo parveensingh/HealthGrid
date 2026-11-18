@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,7 +19,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
     "corsheaders",
+    "users",
     "attribute_authority",
     "records",
     "education",
@@ -63,14 +66,35 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
 ).split(",")
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "120/minute",
+        "user": "1200/minute",
+    },
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+HEALTHGRID_ENCRYPTION_MASTER_KEY = os.environ.get("HEALTHGRID_ENCRYPTION_MASTER_KEY", "")
 
 KUBO_API_URL = os.environ.get("KUBO_API_URL", "").rstrip("/")
 BLOCKCHAIN_RPC_URL = os.environ.get("BLOCKCHAIN_RPC_URL", "")

@@ -11,20 +11,20 @@ import * as Contracts from "./index.js";
 declare module "@nomicfoundation/hardhat-ethers/types" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
   getContractFactory(name: 'AccessControlManager', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.AccessControlManager__factory>
-getContractFactory(name: 'AuditLogger', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.AuditLogger__factory>
 getContractFactory(name: 'MedicalRecordRegistry', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.MedicalRecordRegistry__factory>
+getContractFactory(name: 'AuditLogger', signerOrOptions?: ethers.Signer | FactoryOptions): Promise<Contracts.AuditLogger__factory>
 
   getContractAt(name: 'AccessControlManager', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.AccessControlManager>
-getContractAt(name: 'AuditLogger', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.AuditLogger>
 getContractAt(name: 'MedicalRecordRegistry', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.MedicalRecordRegistry>
+getContractAt(name: 'AuditLogger', address: string | ethers.Addressable, signer?: ethers.Signer): Promise<Contracts.AuditLogger>
 
   deployContract(name: 'AccessControlManager', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AccessControlManager>
-deployContract(name: 'AuditLogger', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AuditLogger>
 deployContract(name: 'MedicalRecordRegistry', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.MedicalRecordRegistry>
+deployContract(name: 'AuditLogger', signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AuditLogger>
 
   deployContract(name: 'AccessControlManager', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AccessControlManager>
-deployContract(name: 'AuditLogger', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AuditLogger>
 deployContract(name: 'MedicalRecordRegistry', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.MedicalRecordRegistry>
+deployContract(name: 'AuditLogger', args: any[], signerOrOptions?: ethers.Signer | DeployContractOptions): Promise<Contracts.AuditLogger>
 
     // default types
     getContractFactory(

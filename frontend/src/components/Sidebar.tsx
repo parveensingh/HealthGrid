@@ -14,9 +14,19 @@ type SidebarProps = {
   activeView: string;
   onNavigate: (view: string) => void;
   userLabel: string;
+  onSignOut?: () => void;
+  onSwitchAccount?: () => void;
 };
 
-export default function Sidebar({ portalName, navItems, activeView, onNavigate, userLabel }: SidebarProps) {
+export default function Sidebar({
+  portalName,
+  navItems,
+  activeView,
+  onNavigate,
+  userLabel,
+  onSignOut,
+  onSwitchAccount,
+}: SidebarProps) {
   return (
     <aside className="hg-sidebar">
       <div className="sidebar-brand">
@@ -81,7 +91,41 @@ export default function Sidebar({ portalName, navItems, activeView, onNavigate, 
         <div style={{ marginBottom: 4, fontWeight: 600, color: "var(--white)", fontSize: 12 }}>
           {userLabel}
         </div>
-        <div>HealthGrid © 2026</div>
+        <div style={{ display: "flex", gap: 10, fontSize: 11, marginTop: 4 }}>
+          {onSwitchAccount && (
+            <button
+              onClick={onSwitchAccount}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--teal-light, #22d3ee)",
+                cursor: "pointer",
+                padding: 0,
+                fontSize: 11,
+                textDecoration: "underline",
+              }}
+            >
+              Switch Account
+            </button>
+          )}
+          {onSignOut && (
+            <button
+              onClick={onSignOut}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#f87171",
+                cursor: "pointer",
+                padding: 0,
+                fontSize: 11,
+                textDecoration: "underline",
+              }}
+            >
+              Sign Out
+            </button>
+          )}
+        </div>
+        <div style={{ marginTop: 8, fontSize: 10, color: "var(--gray-400)" }}>HealthGrid © 2026</div>
       </div>
     </aside>
   );

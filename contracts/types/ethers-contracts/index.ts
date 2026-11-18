@@ -6,5 +6,5 @@ export type { AuditLogger } from './AuditLogger.js';
 export type { MedicalRecordRegistry } from './MedicalRecordRegistry.js';
 export * as factories from './factories/index.js';
 export { AccessControlManager__factory } from './factories/AccessControlManager__factory.js';
-export { AuditLogger__factory } from './factories/AuditLogger__factory.js';
 export { MedicalRecordRegistry__factory } from './factories/MedicalRecordRegistry__factory.js';
+export { AuditLogger__factory } from './factories/AuditLogger__factory.js';

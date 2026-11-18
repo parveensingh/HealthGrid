@@ -1,13 +1,14 @@
 """
 Education module — admin-only views.
 All under /api/admin/education/ prefix.
-Checks X-Admin: true header (simple header-based guard, no real auth).
+Protected by server-side JWT authentication and IsAdmin role permission checks.
 """
 from django.utils import timezone
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 
+from users.permissions import IsAdmin
 from .models import (
     CaseStudy,
     DatasetRequest,
@@ -27,15 +28,21 @@ from .views import (
 
 
 def _require_admin(request):
-    """Return error Response if request is not from admin, else None."""
-    if request.headers.get("X-Admin", "").lower() != "true":
-        return Response({"error": "Admin access required (X-Admin: true header missing)."}, status=status.HTTP_403_FORBIDDEN)
-    return None
+    """Verifies that the authenticated request carries administrator privileges."""
+    if not (request.user and request.user.is_authenticated):
+        return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+    if request.user.is_staff or request.user.is_superuser:
+        return None
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.role == "admin":
+        return None
+    return Response({"error": "Administrator privileges required."}, status=status.HTTP_403_FORBIDDEN)
 
 
 # ─────────────────────── admin: users ───────────────────────────
 
 @api_view(["GET"])
+@permission_classes([IsAdmin])
 def admin_users(request):
     err = _require_admin(request)
     if err:
@@ -51,6 +58,7 @@ def admin_users(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def admin_verify_user(request, user_id):
     err = _require_admin(request)
     if err:
@@ -71,6 +79,7 @@ def admin_verify_user(request, user_id):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def admin_reject_user(request, user_id):
     err = _require_admin(request)
     if err:
@@ -93,6 +102,7 @@ def admin_reject_user(request, user_id):
 # ─────────────────────── admin: dataset requests ─────────────────
 
 @api_view(["GET"])
+@permission_classes([IsAdmin])
 def admin_dataset_requests(request):
     err = _require_admin(request)
     if err:
@@ -105,6 +115,7 @@ def admin_dataset_requests(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def admin_approve_dataset_request(request, request_id):
     err = _require_admin(request)
     if err:
@@ -126,6 +137,7 @@ def admin_approve_dataset_request(request, request_id):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def admin_reject_dataset_request(request, request_id):
     err = _require_admin(request)
     if err:
@@ -149,6 +161,7 @@ def admin_reject_dataset_request(request, request_id):
 # ─────────────────────── admin: programs ────────────────────────
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAdmin])
 def admin_programs(request):
     err = _require_admin(request)
     if err:
@@ -191,6 +204,7 @@ def admin_programs(request):
 # ─────────────────────── admin: intern assignments ───────────────
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def admin_intern_assignments(request):
     err = _require_admin(request)
     if err:
@@ -216,6 +230,7 @@ def admin_intern_assignments(request):
 # ─────────────────────── admin: analytics ───────────────────────
 
 @api_view(["GET"])
+@permission_classes([IsAdmin])
 def admin_analytics(request):
     err = _require_admin(request)
     if err:

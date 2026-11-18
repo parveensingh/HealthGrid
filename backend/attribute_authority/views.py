@@ -1,12 +1,15 @@
 """
-Attribute Authority views — doctor management endpoints.
+Attribute Authority views — doctor management and verification endpoints.
 Under /api/attribute-authority/ prefix.
+Protected by role-based authentication (Admin operations require IsAdmin).
 """
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import JSONParser
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
+from users.permissions import IsAdmin
 from .models import Doctor
 
 
@@ -27,6 +30,16 @@ def doctors_list(request):
         qs = Doctor.objects.order_by("id")
         return Response([_serialize_doctor(d) for d in qs])
 
+    # POST: Creating a new doctor identity requires Admin permissions
+    if not (request.user and request.user.is_authenticated and (
+        getattr(request.user, "profile", None) and request.user.profile.role == "admin"
+        or request.user.is_staff or request.user.is_superuser
+    )):
+        return Response(
+            {"error": "Administrator privileges required to register clinician identities."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     data = request.data
     for field in ["name", "specialty"]:
         if not data.get(field):
@@ -46,6 +59,7 @@ def doctors_list(request):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def doctor_detail(request, doctor_id):
     try:
         d = Doctor.objects.get(pk=doctor_id)
@@ -55,6 +69,7 @@ def doctor_detail(request, doctor_id):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def verify_doctor(request, doctor_id):
     try:
         d = Doctor.objects.get(pk=doctor_id)
@@ -66,6 +81,7 @@ def verify_doctor(request, doctor_id):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdmin])
 def unverify_doctor(request, doctor_id):
     try:
         d = Doctor.objects.get(pk=doctor_id)
